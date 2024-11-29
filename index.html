@@ -312,6 +312,11 @@
 
             <div id="weekView">
                 <h3>本周完成情况</h3>
+                <div class="calendar-nav">
+                    <button id="prevWeek" class="nav-btn">◀</button>
+                    <span id="currentWeekDisplay"></span>
+                    <button id="nextWeek" class="nav-btn">▶</button>
+                </div>
                 <table class="completion-table">
                     <thead>
                         <tr>
@@ -327,12 +332,21 @@
 
             <div id="monthView" style="display: none;">
                 <h3>本月完成情况</h3>
-                <table class="completion-table">
+                <div class="calendar-nav">
+                    <button id="prevMonth" class="nav-btn">◀</button>
+                    <span id="currentMonthDisplay"></span>
+                    <button id="nextMonth" class="nav-btn">▶</button>
+                </div>
+                <table class="month-calendar">
                     <thead>
                         <tr>
-                            <th>日期</th>
-                            <th>星期</th>
-                            <th>完成状态</th>
+                            <th>日</th>
+                            <th>一</th>
+                            <th>二</th>
+                            <th>三</th>
+                            <th>四</th>
+                            <th>五</th>
+                            <th>六</th>
                         </tr>
                     </thead>
                     <tbody id="monthViewData">

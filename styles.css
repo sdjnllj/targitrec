@@ -221,6 +221,168 @@ button.not-completed:hover {
     transform: scale(1.1);
 }
 
+/* 月视图表格样式 */
+.month-calendar {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--border-color);
+}
+
+.month-calendar th,
+.month-calendar td {
+    border: 1px solid var(--border-color);
+    padding: 0;
+    text-align: center;
+    width: calc(100% / 7);
+    position: relative;
+}
+
+.month-calendar th {
+    padding: 12px;
+    background-color: var(--background-stripe);
+    font-weight: normal;
+}
+
+.month-calendar td {
+    background-color: white;
+}
+
+/* 使单元格保持正方形 */
+.month-calendar td::before {
+    content: '';
+    display: block;
+    padding-top: 100%;
+}
+
+/* 单元格内容容器 */
+.month-calendar td > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px;
+}
+
+/* 日期数字 */
+.month-calendar .date-number {
+    font-size: 1rem;
+    color: var(--text-color);
+    margin-bottom: 4px;
+}
+
+/* 复选框容器 */
+.month-calendar .checkbox-container {
+    margin-top: auto;
+}
+
+/* 当天日期样式 */
+.month-calendar td.current-day {
+    border: 2px solid var(--primary-color);
+}
+
+/* 非当月日期样式 */
+.month-calendar td.other-month {
+    background-color: var(--background-stripe);
+}
+
+/* 已完成日期样式 */
+.month-calendar td.completed .checkbox-container {
+    color: var(--primary-color);
+}
+
+/* 日历导航样式 */
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.calendar-nav .nav-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.calendar-nav .nav-btn:hover {
+    background-color: var(--background-stripe);
+}
+
+#currentMonthDisplay {
+    font-size: 1.2rem;
+    font-weight: 500;
+    min-width: 120px;
+    text-align: center;
+}
+
+/* 年视图网格 */
+.year-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.month-card {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.month-card h4 {
+    margin: 0 0 16px 0;
+    color: var(--text-color);
+    text-align: center;
+}
+
+.month-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--secondary-color);
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.day-cell.completed {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.day-cell.not-completed {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.day-cell.empty {
+    background-color: #f1f5f9;
+}
+
+.day-cell:hover:not(.empty) {
+    transform: scale(1.1);
+}
+
 /* 目标列表样式 */
 #goalsList {
     background: white;
