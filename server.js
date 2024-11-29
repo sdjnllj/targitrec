@@ -95,10 +95,10 @@ const server = http.createServer((req, res) => {
     });
 });
 
-const port = 3002;  // 使用新的端口号
-server.listen(port, () => {
+const PORT = 8080;
+server.listen(PORT, () => {
     console.log('\n=== Server Started ===');
-    console.log(`Server running at http://localhost:${port}/`);
+    console.log(`Server running at http://localhost:${PORT}/`);
     console.log('Current directory:', __dirname);
     console.log('\nPress Ctrl+C to stop the server');
 });

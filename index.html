@@ -3,371 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>目标完成记录表</title>
+    <title>目标追踪</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --secondary-color: #10b981;
-            --danger-color: #ef4444;
-            --background-color: #f1f5f9;
-            --card-background: #ffffff;
-            --text-color: #1e293b;
-            --border-radius: 12px;
-            --shadow: 0 2px 10px rgba(0,0,0,0.1);
-            --transition: all 0.3s ease;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            margin: 0;
-            padding: 16px;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.5;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background-color: var(--card-background);
-            padding: 24px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-        }
-
-        .main-title {
-            color: var(--primary-color);
-            text-align: center;
-            font-size: 2em;
-            margin-bottom: 24px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .main-title:hover {
-            transform: translateY(-2px);
-        }
-
-        .goal-form-container {
-            margin-bottom: 24px;
-        }
-
-        .goal-form {
-            display: flex;
-            gap: 12px;
-        }
-
-        .goal-form input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: var(--border-radius);
-            font-size: 1em;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: var(--border-radius);
-            background-color: var(--primary-color);
-            color: white;
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-        }
-
-        .btn.delete {
-            background-color: var(--danger-color);
-        }
-
-        .goals-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .goal-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            background: #f8fafc;
-            border-radius: var(--border-radius);
-            transition: var(--transition);
-        }
-
-        .goal-item:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-        }
-
-        .goal-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .goal-detail {
-            display: none;
-        }
-
-        .goal-detail h2 {
-            color: var(--primary-color);
-            margin-bottom: 24px;
-        }
-
-        .view-controls {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin: 24px 0;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        th {
-            background-color: #f1f5f9;
-            font-weight: 600;
-        }
-
-        .completed {
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .not-completed {
-            background-color: var(--danger-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .error-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 16px 24px;
-            background-color: var(--danger-color);
-            color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .fade-out {
-            animation: fadeOut 0.5s ease forwards;
-        }
-
-        @keyframes fadeOut {
-            to {
-                opacity: 0;
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 12px;
-            }
-
-            .container {
-                padding: 16px;
-            }
-
-            .goal-form {
-                flex-direction: column;
-            }
-
-            .goal-item {
-                flex-direction: column;
-                gap: 12px;
-                text-align: center;
-            }
-
-            .goal-actions {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        .back-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: var(--border-radius);
-            background-color: var(--primary-color);
-            color: white;
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-
-        .back-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-        }
-
-        .view-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: var(--border-radius);
-            background-color: var(--primary-color);
-            color: white;
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-
-        .view-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-        }
-
-        .view-btn.active {
-            background-color: var(--secondary-color);
-        }
-
-        .completion-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin: 24px 0;
-        }
-
-        .completion-table th, .completion-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .completion-table th {
-            background-color: #f1f5f9;
-            font-weight: 600;
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <h1 id="mainTitle" class="main-title">我的目标记录本</h1>
-        
-        <!-- 目标列表视图 -->
-        <div id="goalsList">
-            <h2>我的目标</h2>
-            
-            <!-- 添加目标表单 -->
-            <form id="goalForm" class="add-goal-form">
-                <input type="text" id="goalInput" placeholder="输入新目标..." required>
-                <button type="submit">添加目标</button>
+    <div class="app">
+        <!-- 主页面 -->
+        <div id="homePage" class="page">
+            <header class="header">
+                <h1>目标追踪</h1>
+                <button id="newGoalBtn" class="btn primary">新建目标</button>
+            </header>
+
+            <!-- 目标列表 -->
+            <div id="goalList" class="goal-list">
+                <!-- 目标会被动态添加到这里 -->
+            </div>
+        </div>
+
+        <!-- 新建目标页面 -->
+        <div id="newGoalPage" class="page" style="display: none;">
+            <header class="header">
+                <button class="btn back" id="backFromNew">返回</button>
+                <h2>新建目标</h2>
+            </header>
+            <form id="newGoalForm" class="goal-form">
+                <input type="text" id="goalTitle" placeholder="输入目标名称..." required>
+                <button type="submit" class="btn primary">保存</button>
             </form>
-
-            <!-- 目标列表容器 -->
-            <div id="goalsContainer" class="goals-container">
-            </div>
         </div>
 
-        <!-- 目标详情视图 -->
-        <div id="goalDetail" style="display: none;">
-            <h2 id="detailTitle"></h2>
-            <button onclick="showGoalsList()" class="back-btn">返回目标列表</button>
-            
+        <!-- 目标详情页面 -->
+        <div id="detailPage" class="page" style="display: none;">
+            <header class="header">
+                <button class="btn back" id="backFromDetail">返回</button>
+                <h2 id="detailTitle">目标详情</h2>
+            </header>
+
             <div class="view-controls">
-                <button id="weekViewBtn" class="view-btn active">周视图</button>
-                <button id="monthViewBtn" class="view-btn">月视图</button>
-                <button id="yearViewBtn" class="view-btn">年视图</button>
+                <button class="btn view-btn active" data-view="week">周视图</button>
+                <button class="btn view-btn" data-view="month">月视图</button>
+                <button class="btn view-btn" data-view="year">年视图</button>
             </div>
 
-            <div id="weekView">
-                <h3>本周完成情况</h3>
-                <div class="calendar-nav">
-                    <button id="prevWeek" class="nav-btn">◀</button>
-                    <span id="currentWeekDisplay"></span>
-                    <button id="nextWeek" class="nav-btn">▶</button>
+            <div class="view-container">
+                <div id="weekView" class="view">
+                    <div class="date-nav">
+                        <button class="btn nav" id="prevWeek">◀</button>
+                        <span id="weekRange"></span>
+                        <button class="btn nav" id="nextWeek">▶</button>
+                    </div>
+                    <div id="weekContent"></div>
                 </div>
-                <table class="completion-table">
-                    <thead>
-                        <tr>
-                            <th>日期</th>
-                            <th>星期</th>
-                            <th>完成状态</th>
-                        </tr>
-                    </thead>
-                    <tbody id="weekViewData">
-                    </tbody>
-                </table>
-            </div>
 
-            <div id="monthView" style="display: none;">
-                <h3>本月完成情况</h3>
-                <div class="calendar-nav">
-                    <button id="prevMonth" class="nav-btn">◀</button>
-                    <span id="currentMonthDisplay"></span>
-                    <button id="nextMonth" class="nav-btn">▶</button>
+                <div id="monthView" class="view" style="display: none;">
+                    <div class="date-nav">
+                        <button class="btn nav" id="prevMonth">◀</button>
+                        <span id="monthRange"></span>
+                        <button class="btn nav" id="nextMonth">▶</button>
+                    </div>
+                    <div id="monthContent"></div>
                 </div>
-                <table class="month-calendar">
-                    <thead>
-                        <tr>
-                            <th>日</th>
-                            <th>一</th>
-                            <th>二</th>
-                            <th>三</th>
-                            <th>四</th>
-                            <th>五</th>
-                            <th>六</th>
-                        </tr>
-                    </thead>
-                    <tbody id="monthViewData">
-                    </tbody>
-                </table>
-            </div>
 
-            <div id="yearView" style="display: none;">
-                <h3>本年完成情况</h3>
-                <div class="year-grid" id="yearViewData">
+                <div id="yearView" class="view" style="display: none;">
+                    <div class="date-nav">
+                        <button class="btn nav" id="prevYear">◀</button>
+                        <span id="yearRange"></span>
+                        <button class="btn nav" id="nextYear">▶</button>
+                    </div>
+                    <div id="yearContent"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Firebase SDK -->
-        <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-        
-        <!-- 应用脚本 -->
-        <script type="module" src="firebaseConfig.js"></script>
-        <script type="module" src="script.js"></script>
+        <!-- 提示消息 -->
+        <div id="toast" class="toast" style="display: none;"></div>
     </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.0/dist/av-min.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
