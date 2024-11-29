@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>目标完成记录表</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+        }
+        .container {
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+        }
+        .view-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .view-button {
+            padding: 10px 20px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 10px 0;
+        }
+        .view-button:hover {
+            background-color: #1557b0;
+        }
+        .navigation-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .nav-button {
+            padding: 10px 20px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 10px 0;
+        }
+        .nav-button:hover {
+            background-color: #1557b0;
+        }
+        .date-range {
+            margin-bottom: 20px;
+        }
+        .view-content {
+            display: none;
+        }
+        .view-content.active {
+            display: block;
+        }
+        .week-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .week-table th, .week-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        .week-table th {
+            background-color: #f0f0f0;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .calendar-header div {
+            width: 14.28%;
+            text-align: center;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-gap: 10px;
+        }
+        .year-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-gap: 10px;
+        }
+        .stats-section {
+            margin-top: 20px;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .action-button {
+            padding: 10px 20px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 10px 0;
+        }
+        .action-button:hover {
+            background-color: #1557b0;
+        }
+        .danger {
+            background-color: #e74c3c;
+        }
+        .danger:hover {
+            background-color: #c0392b;
+        }
+        .secondary {
+            background-color: #2ecc71;
+        }
+        .secondary:hover {
+            background-color: #27ae60;
+        }
+        .goal-form-container {
+            margin-bottom: 20px;
+        }
+        .goal-form {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #goalInput {
+            width: 80%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .goals-list {
+            margin-bottom: 20px;
+        }
+        .goal-detail {
+            margin-bottom: 20px;
+        }
+        .goal-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .back-button {
+            padding: 10px 20px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 10px 0;
+        }
+        .back-button:hover {
+            background-color: #1557b0;
+        }
+        .goal-header {
+            margin-bottom: 20px;
+        }
+        .goal-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        /* 新增样式 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 10px 0;
+        }
+        .back-btn {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .back-btn:hover {
+            background-color: #1557b0;
+        }
+        .view-btn {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .view-btn:hover {
+            background-color: #1557b0;
+        }
+        .nav-btn {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .nav-btn:hover {
+            background-color: #1557b0;
+        }
+        .export-btn {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .export-btn:hover {
+            background-color: #1557b0;
+        }
+        .danger-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .danger-btn:hover {
+            background-color: #c0392b;
+        }
+        .pin-btn {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .pin-btn:hover {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>我的目标记录本</h1>
+        
+        <!-- 目标添加表单 -->
+        <div class="goal-form-container">
+            <form id="goalForm" class="goal-form">
+                <input type="text" id="goalInput" placeholder="输入新目标..." required>
+                <button type="submit" class="btn">添加目标</button>
+            </form>
+        </div>
+
+        <!-- 目标列表 -->
+        <div id="goalsList" class="goals-list">
+            <!-- 目标将通过JavaScript动态添加 -->
+        </div>
+
+        <!-- 目标详情视图（初始隐藏） -->
+        <div id="goalDetail" class="goal-detail">
+            <button id="backToList" class="btn back-btn">返回目标列表</button>
+            
+            <div class="goal-header">
+                <h2 id="goalTitle" class="goal-title"></h2>
+            </div>
+
+            <div class="view-controls">
+                <button id="weekView" class="btn view-btn">周视图</button>
+                <button id="monthView" class="btn view-btn">月视图</button>
+                <button id="yearView" class="btn view-btn">年视图</button>
+            </div>
+
+            <div class="navigation-controls">
+                <button id="prevBtn" class="btn nav-btn">上一个</button>
+                <button id="todayBtn" class="btn nav-btn">返回当前</button>
+                <button id="nextBtn" class="btn nav-btn">下一个</button>
+            </div>
+
+            <div id="dateRange" class="date-range"></div>
+
+            <div id="weekViewContent" class="view-content">
+                <table class="week-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>星期</th>
+                            <th>作业完成情况</th>
+                        </tr>
+                    </thead>
+                    <tbody id="weekTableBody">
+                        <!-- 表格内容将由JavaScript动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="monthViewContent" class="view-content">
+                <div class="calendar-header">
+                    <div>日</div>
+                    <div>一</div>
+                    <div>二</div>
+                    <div>三</div>
+                    <div>四</div>
+                    <div>五</div>
+                    <div>六</div>
+                </div>
+                <div id="monthGrid" class="calendar-grid"></div>
+            </div>
+
+            <div id="yearViewContent" class="view-content">
+                <div id="yearGrid"></div>
+            </div>
+
+            <div class="stats-section">
+                <h3>统计信息</h3>
+                <p>总完成率：<span id="completionRate">0%</span></p>
+                <div class="action-buttons">
+                    <button id="exportBtn" class="btn export-btn">导出数据</button>
+                    <button id="clearBtn" class="btn danger-btn">清理旧数据</button>
+                    <button id="pinBtn" class="btn pin-btn">修改PIN码</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

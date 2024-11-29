@@ -1,0 +1,125 @@
+.view-controls {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.view-button {
+    padding: 10px 20px;
+    margin: 0 5px;
+    border: 2px solid #1a73e8;
+    background: white;
+    color: #1a73e8;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.view-button.active {
+    background: #1a73e8;
+    color: white;
+}
+
+.calendar-view {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 20px 0;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-header button {
+    padding: 5px 15px;
+    border: none;
+    background: #f0f2f5;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.calendar-day.completed {
+    background-color: #e6f4ea;
+    border-color: #34a853;
+}
+
+.calendar-day.today {
+    border-color: #1a73e8;
+    font-weight: bold;
+}
+
+.week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+.week-day {
+    text-align: center;
+    padding: 20px 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
+
+.week-day.completed {
+    background-color: #e6f4ea;
+    border-color: #34a853;
+}
+
+.completion-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.stat-item {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.stat-item h3 {
+    margin: 0 0 10px 0;
+    color: #666;
+}
+
+#month-completion-rate,
+#week-completion-rate {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1a73e8;
+}
+
+@media (max-width: 600px) {
+    .calendar-day {
+        font-size: 12px;
+    }
+    
+    .week-day {
+        padding: 10px 5px;
+        font-size: 12px;
+    }
+}
