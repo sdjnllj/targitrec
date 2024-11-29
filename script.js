@@ -1,550 +1,617 @@
+import { db } from './firebaseConfig.js';
+import { 
+    collection, 
+    addDoc, 
+    getDocs,
+    updateDoc,
+    deleteDoc,
+    doc,
+    query,
+    where,
+    serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
 // 全局变量
-let currentView = 'week';
-let currentDate = new Date();
 let currentGoalId = null;
 
-// DOM 元素
-const viewButtons = {
-    week: document.getElementById('weekView'),
-    month: document.getElementById('monthView'),
-    year: document.getElementById('yearView')
-};
-
-const viewContents = {
-    week: document.getElementById('weekViewContent'),
-    month: document.getElementById('monthViewContent'),
-    year: document.getElementById('yearViewContent')
-};
-
-// 初始化
-document.addEventListener('DOMContentLoaded', () => {
-    // 隐藏目标详情视图
-    document.getElementById('goalDetail').style.display = 'none';
-    
-    // 添加目标表单提交事件
-    document.getElementById('goalForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        addNewGoal();
-    });
-
-    // 返回按钮事件
-    document.getElementById('backToList').addEventListener('click', showGoalsList);
-
-    // 视图切换事件
-    Object.keys(viewButtons).forEach(view => {
-        viewButtons[view].classList.toggle('active', view === currentView);
-        viewButtons[view].addEventListener('click', () => switchView(view));
-    });
-
-    // 导航按钮事件
-    document.getElementById('prevBtn').addEventListener('click', navigatePrevious);
-    document.getElementById('todayBtn').addEventListener('click', navigateToday);
-    document.getElementById('nextBtn').addEventListener('click', navigateNext);
-
-    // 功能按钮事件
-    document.getElementById('exportBtn').addEventListener('click', exportData);
-    document.getElementById('clearBtn').addEventListener('click', clearOldData);
-    document.getElementById('pinBtn').addEventListener('click', modifyPin);
-
-    // 显示目标列表
-    displayGoals();
-    
-    // 设置默认视图
-    switchView('week');
-});
-
-// 目标管理函数
-function addNewGoal() {
-    const input = document.getElementById('goalInput');
-    const content = input.value.trim();
-
-    if (content) {
-        const goals = getGoals();
-        const newGoal = {
-            id: Date.now(),
-            content: content,
-            createdAt: new Date().toISOString(),
-            completionData: {}
-        };
-
-        goals.push(newGoal);
-        saveGoals(goals);
-        input.value = '';
-        displayGoals();
+// 获取目标列表
+async function getGoals() {
+    try {
+        const querySnapshot = await getDocs(collection(db, 'goals'));
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    } catch (error) {
+        console.error('获取目标列表时出错:', error);
+        showError('获取目标列表失败，请检查网络连接后重试。');
+        return [];
     }
 }
 
-function getGoals() {
-    return JSON.parse(localStorage.getItem('goals') || '[]');
+// 显示错误信息
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    
+    document.body.appendChild(errorDiv);
+    
+    setTimeout(() => {
+        errorDiv.classList.add('fade-out');
+        setTimeout(() => {
+            document.body.removeChild(errorDiv);
+        }, 500);
+    }, 3000);
 }
 
-function saveGoals(goals) {
-    localStorage.setItem('goals', JSON.stringify(goals));
+// 添加目标
+async function addGoal(content) {
+    try {
+        const docRef = await addDoc(collection(db, 'goals'), {
+            content: content,
+            createdAt: serverTimestamp(),
+            completionData: {}
+        });
+        return docRef.id;
+    } catch (error) {
+        console.error('添加目标时出错:', error);
+        showError('添加目标失败，请检查网络连接后重试。');
+        return null;
+    }
 }
 
-function displayGoals() {
-    const goalsList = document.getElementById('goalsList');
-    const goals = getGoals();
+// 更新目标
+async function updateGoal(id, goalData) {
+    try {
+        const goalRef = doc(db, 'goals', id);
+        await updateDoc(goalRef, goalData);
+        return true;
+    } catch (error) {
+        console.error('更新目标时出错:', error);
+        showError('更新目标失败，请检查网络连接后重试。');
+        return false;
+    }
+}
 
-    if (goals.length === 0) {
-        goalsList.innerHTML = '<div class="empty-state">还没有添加任何目标，开始添加吧！</div>';
+// 删除目标
+async function deleteGoal(id) {
+    try {
+        await deleteDoc(doc(db, 'goals', id));
+        return true;
+    } catch (error) {
+        console.error('删除目标时出错:', error);
+        showError('删除目标失败，请检查网络连接后重试。');
+        return false;
+    }
+}
+
+// 更新目标列表视图
+async function updateGoalsList(goals) {
+    try {
+        const goalsList = document.getElementById('goalsList');
+        const goalsContainer = document.getElementById('goalsContainer');
+        
+        if (!goalsList || !goalsContainer) {
+            console.error('找不到目标列表容器');
+            return;
+        }
+
+        // 清空现有内容
+        goalsContainer.innerHTML = '';
+
+        if (!goals || goals.length === 0) {
+            goalsContainer.innerHTML = '<p>还没有添加任何目标</p>';
+            return;
+        }
+
+        // 创建目标列表
+        goals.forEach(goal => {
+            const goalElement = document.createElement('div');
+            goalElement.className = 'goal-item';
+            
+            const goalContent = document.createElement('div');
+            goalContent.className = 'goal-content';
+            goalContent.textContent = goal.content;
+            goalContent.onclick = () => showGoalDetail(goal.id);
+            
+            const goalActions = document.createElement('div');
+            goalActions.className = 'goal-actions';
+            
+            const editButton = document.createElement('button');
+            editButton.textContent = '编辑';
+            editButton.onclick = () => editGoal(goal.id);
+            
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = '删除';
+            deleteButton.onclick = () => deleteGoalHandler(goal.id);
+            
+            goalActions.appendChild(editButton);
+            goalActions.appendChild(deleteButton);
+            
+            goalElement.appendChild(goalContent);
+            goalElement.appendChild(goalActions);
+            
+            goalsContainer.appendChild(goalElement);
+        });
+    } catch (error) {
+        console.error('更新目标列表时出错:', error);
+        showError('更新目标列表失败，请稍后重试');
+    }
+}
+
+// 显示目标详情
+async function showGoalDetail(id) {
+    try {
+        if (!id) {
+            console.error('无效的目标ID');
+            return;
+        }
+        
+        currentGoalId = id;
+        const goals = await getGoals();
+        const goal = goals.find(g => g.id === id);
+        
+        if (!goal) {
+            console.error('未找到目标:', id);
+            return;
+        }
+
+        const detailTitle = document.getElementById('detailTitle');
+        const goalsList = document.getElementById('goalsList');
+        const goalDetail = document.getElementById('goalDetail');
+
+        if (!detailTitle || !goalsList || !goalDetail) {
+            console.error('找不到必要的DOM元素');
+            return;
+        }
+
+        detailTitle.textContent = goal.content || '未命名目标';
+        goalsList.style.display = 'none';
+        goalDetail.style.display = 'block';
+
+        // 确保视图按钮存在
+        const weekViewBtn = document.getElementById('weekViewBtn');
+        const monthViewBtn = document.getElementById('monthViewBtn');
+        const yearViewBtn = document.getElementById('yearViewBtn');
+
+        if (!weekViewBtn || !monthViewBtn || !yearViewBtn) {
+            console.error('找不到视图切换按钮');
+            return;
+        }
+
+        // 默认显示周视图
+        switchView('week');
+    } catch (error) {
+        console.error('显示目标详情时出错:', error);
+        showError('显示目标详情失败，请稍后重试');
+    }
+}
+
+// 切换完成状态
+async function toggleCompletion(dateString) {
+    try {
+        if (!currentGoalId) {
+            showError('请先选择一个目标');
+            return;
+        }
+
+        const goals = await getGoals();
+        const goalIndex = goals.findIndex(g => g.id === currentGoalId);
+        if (goalIndex === -1) {
+            showError('目标不存在');
+            return;
+        }
+
+        const goal = goals[goalIndex];
+        goal.completionData = goal.completionData || {};
+        goal.completionData[dateString] = !goal.completionData[dateString];
+
+        // 更新 Firebase
+        const goalRef = doc(db, 'goals', currentGoalId);
+        await updateDoc(goalRef, {
+            completionData: goal.completionData
+        });
+
+        // 更新界面
+        const currentView = document.getElementById('monthView').style.display === 'none' ? 'week' : 'month';
+        if (currentView === 'week') {
+            updateWeekView();
+        } else {
+            updateMonthView();
+        }
+
+    } catch (error) {
+        console.error('切换完成状态时出错:', error);
+        showError('更新完成状态失败，请稍后重试');
+    }
+}
+
+// 编辑目标
+async function editGoal(id) {
+    const goals = await getGoals();
+    const goal = goals.find(g => g.id === id);
+    if (goal) {
+        const newContent = prompt('编辑目标：', goal.content);
+        if (newContent && newContent !== goal.content) {
+            goal.content = newContent;
+            if (await updateGoal(id, goal)) {
+                const updatedGoals = await getGoals();
+                updateGoalsList(updatedGoals);
+            }
+        }
+    }
+}
+
+// 显示目标列表
+function showGoalsList() {
+    document.getElementById('goalDetail').style.display = 'none';
+    document.getElementById('goalsList').style.display = 'block';
+}
+
+// 切换视图
+function switchView(view) {
+    console.log('切换视图到:', view);
+    const weekView = document.getElementById('weekView');
+    const monthView = document.getElementById('monthView');
+    const yearView = document.getElementById('yearView');
+    const weekViewBtn = document.getElementById('weekViewBtn');
+    const monthViewBtn = document.getElementById('monthViewBtn');
+    const yearViewBtn = document.getElementById('yearViewBtn');
+
+    if (!weekView || !monthView || !yearView || !weekViewBtn || !monthViewBtn || !yearViewBtn) {
+        console.error('找不到视图元素');
         return;
     }
 
-    goalsList.innerHTML = goals.map(goal => `
-        <div class="goal-item" id="goal-${goal.id}">
-            <div class="goal-content" onclick="viewGoalDetail(${goal.id})">
-                <h3>${goal.content}</h3>
-                <p>创建时间: ${new Date(goal.createdAt).toLocaleDateString()}</p>
-            </div>
-            <div class="goal-actions">
-                <button onclick="editGoal(${goal.id})" class="edit-btn">编辑</button>
-                <button onclick="deleteGoal(${goal.id})" class="delete-btn">删除</button>
-            </div>
-        </div>
-    `).join('');
-}
+    // 隐藏所有视图
+    weekView.style.display = 'none';
+    monthView.style.display = 'none';
+    yearView.style.display = 'none';
+    
+    // 移除所有按钮的激活状态
+    weekViewBtn.classList.remove('active');
+    monthViewBtn.classList.remove('active');
+    yearViewBtn.classList.remove('active');
 
-function deleteGoal(id) {
-    if (confirm('确定要删除这个目标吗？')) {
-        const goals = getGoals().filter(goal => goal.id !== id);
-        saveGoals(goals);
-        displayGoals();
-    }
-}
-
-function viewGoalDetail(id) {
-    // 先重置状态
-    currentView = 'week';
-    currentDate = new Date();
-    currentGoalId = id;
-    
-    const goal = getGoals().find(g => g.id === id);
-    
-    if (goal) {
-        document.getElementById('goalTitle').textContent = goal.content;
-        document.getElementById('goalsList').style.display = 'none';
-        document.getElementById('goalForm').style.display = 'none';
-        document.getElementById('goalDetail').style.display = 'block';
-        
-        // 设置默认视图为周视图并更新
-        Object.keys(viewButtons).forEach(view => {
-            viewButtons[view].classList.toggle('active', view === 'week');
-        });
-        Object.keys(viewContents).forEach(v => {
-            viewContents[v].style.display = v === 'week' ? 'block' : 'none';
-        });
-        
-        updateView();
-    }
-}
-
-function showGoalsList() {
-    // 重置所有状态
-    currentGoalId = null;
-    currentView = 'week';
-    currentDate = new Date();
-    
-    // 重置视图按钮状态
-    Object.keys(viewButtons).forEach(view => {
-        viewButtons[view].classList.toggle('active', view === 'week');
-    });
-    
-    // 重置视图内容显示状态
-    Object.keys(viewContents).forEach(v => {
-        viewContents[v].style.display = 'none';
-    });
-    
-    // 显示目标列表
-    document.getElementById('goalDetail').style.display = 'none';
-    document.getElementById('goalsList').style.display = 'block';
-    document.getElementById('goalForm').style.display = 'block';
-}
-
-// 视图管理函数
-function switchView(view) {
-    currentView = view;
-    
-    Object.keys(viewButtons).forEach(v => {
-        viewButtons[v].classList.remove('active');
-    });
-    
-    viewButtons[view].classList.add('active');
-    
-    Object.keys(viewContents).forEach(v => {
-        viewContents[v].style.display = v === view ? 'block' : 'none';
-    });
-    
-    updateView();
-}
-
-function updateView() {
-    updateDateRange();
-    
-    switch(currentView) {
+    // 显示选中的视图
+    switch (view) {
         case 'week':
+            weekView.style.display = 'block';
+            weekViewBtn.classList.add('active');
             updateWeekView();
             break;
         case 'month':
+            monthView.style.display = 'block';
+            monthViewBtn.classList.add('active');
             updateMonthView();
             break;
         case 'year':
+            yearView.style.display = 'block';
+            yearViewBtn.classList.add('active');
             updateYearView();
             break;
     }
-    
-    updateCompletionRate();
 }
 
-// 日期管理函数
-function updateDateRange() {
-    const dateRange = document.getElementById('dateRange');
-    
-    switch(currentView) {
-        case 'week':
-            const weekStart = getWeekStart(currentDate);
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekEnd.getDate() + 6);
-            dateRange.textContent = `${formatDate(weekStart)} - ${formatDate(weekEnd)}`;
-            break;
-        case 'month':
-            dateRange.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
-            break;
-        case 'year':
-            dateRange.textContent = `${currentDate.getFullYear()}年`;
-            break;
-    }
-}
-
+// 更新周视图
 function updateWeekView() {
-    const tbody = document.getElementById('weekTableBody');
-    tbody.innerHTML = '';
-    
-    const weekStart = getWeekStart(currentDate);
-    const goal = getGoals().find(g => g.id === currentGoalId);
-    
-    for (let i = 0; i < 7; i++) {
-        const date = new Date(weekStart);
-        date.setDate(date.getDate() + i);
-        const dateString = formatDate(date);
-        const weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][date.getDay()];
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${dateString}</td>
-            <td>${weekDay}</td>
-            <td style="text-align: center">
-                <div class="custom-checkbox ${goal?.completionData[dateString] ? 'checked' : ''}"
-                     onclick="toggleCompletion('${dateString}')"></div>
-            </td>
-        `;
-        tbody.appendChild(row);
-    }
-    
-    // 更新完成率
-    if (goal) {
-        const dates = Object.keys(goal.completionData);
-        const completedDates = dates.filter(date => goal.completionData[date]);
-        const rate = dates.length > 0 ? Math.round((completedDates.length / dates.length) * 100) : 0;
-        document.getElementById('completionRate').textContent = `${rate}%`;
-    }
-}
-
-function updateMonthView() {
-    const grid = document.getElementById('monthGrid');
-    grid.innerHTML = '';
-    
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const goal = getGoals().find(g => g.id === currentGoalId);
-    
-    // 添加空白天数
-    for (let i = 0; i < firstDay.getDay(); i++) {
-        const emptyDay = document.createElement('div');
-        emptyDay.className = 'calendar-day empty';
-        grid.appendChild(emptyDay);
-    }
-    
-    // 添加日期
-    for (let date = 1; date <= lastDay.getDate(); date++) {
-        const dayElement = document.createElement('div');
-        dayElement.className = 'calendar-day';
-        
-        const currentDateString = formatDate(new Date(year, month, date));
-        const isToday = isCurrentDate(new Date(year, month, date));
-        
-        if (isToday) {
-            dayElement.classList.add('today');
+    try {
+        const weekViewData = document.getElementById('weekViewData');
+        if (!weekViewData) {
+            console.error('找不到周视图数据容器');
+            return;
         }
-        
-        dayElement.innerHTML = `
-            ${date}
-            <div class="custom-checkbox ${goal?.completionData[currentDateString] ? 'checked' : ''}"
-                 onclick="toggleCompletion('${currentDateString}')"></div>
-        `;
-        
-        grid.appendChild(dayElement);
-    }
-}
 
-function updateYearView() {
-    const grid = document.getElementById('yearGrid');
-    grid.innerHTML = '';
-    
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    const goal = getGoals().find(g => g.id === currentGoalId);
-    
-    // 创建年份标题
-    const yearTitle = document.createElement('div');
-    yearTitle.textContent = `${currentYear}年`;
-    yearTitle.style.fontSize = '16px';
-    yearTitle.style.margin = '20px 0';
-    yearTitle.style.textAlign = 'center';
-    grid.appendChild(yearTitle);
-    
-    // 创建月份网格容器
-    const monthsContainer = document.createElement('div');
-    monthsContainer.className = 'months-grid';
-    
-    for (let month = 0; month < 12; month++) {
-        const monthData = calculateMonthCompletion(currentYear, month, goal?.completionData || {});
-        const monthCard = document.createElement('div');
-        monthCard.className = `month-card ${month === currentMonth ? 'current' : ''}`;
+        weekViewData.innerHTML = '';
         
-        monthCard.innerHTML = `
-            <div class="month-title">${month + 1}月</div>
-            <div class="month-stats">
-                <div>完成率: ${monthData.rate}%</div>
-                <div>完成: ${monthData.completed}/${monthData.total}天</div>
-            </div>
-        `;
-        
-        monthsContainer.appendChild(monthCard);
-    }
-    
-    grid.appendChild(monthsContainer);
-    
-    // 更新统计信息
-    if (goal) {
-        const dates = Object.keys(goal.completionData);
-        const completedDates = dates.filter(date => goal.completionData[date]);
-        const rate = dates.length > 0 ? Math.round((completedDates.length / dates.length) * 100) : 0;
-        
-        const statsSection = document.querySelector('.stats-section');
-        statsSection.className = 'stats-section';  
-        
-        statsSection.innerHTML = `
-            <h3>统计信息</h3>
-            <div>总完成率：${rate}%</div>
-        `;
-    }
-}
-
-// 数据处理函数
-function toggleCompletion(dateString) {
-    const goals = getGoals();
-    const goal = goals.find(g => g.id === currentGoalId);
-    
-    if (goal) {
-        goal.completionData = goal.completionData || {};
-        goal.completionData[dateString] = !goal.completionData[dateString];
-        saveGoals(goals);
-        updateView();
-    }
-}
-
-function calculateMonthCompletion(year, month, completionData) {
-    const lastDay = new Date(year, month + 1, 0).getDate();
-    let completed = 0;
-    
-    for (let date = 1; date <= lastDay; date++) {
-        const dateString = formatDate(new Date(year, month, date));
-        if (completionData[dateString]) {
-            completed++;
+        // 生成最近7天的数据
+        const dates = [];
+        const today = new Date();
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            dates.push(date);
         }
-    }
-    
-    return {
-        completed,
-        total: lastDay,
-        rate: Math.round((completed / lastDay) * 100)
-    };
-}
 
-function updateCompletionRate() {
-    const goal = getGoals().find(g => g.id === currentGoalId);
-    if (!goal) return;
-
-    const completionData = goal.completionData || {};
-    const dates = Object.keys(completionData);
-    const completedDates = dates.filter(date => completionData[date]);
-    const rate = dates.length > 0 ? Math.round((completedDates.length / dates.length) * 100) : 0;
-    
-    document.getElementById('completionRate').textContent = `${rate}%`;
-}
-
-// 导航函数
-function navigatePrevious() {
-    switch(currentView) {
-        case 'week':
-            currentDate.setDate(currentDate.getDate() - 7);
-            break;
-        case 'month':
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            break;
-        case 'year':
-            currentDate.setFullYear(currentDate.getFullYear() - 1);
-            break;
-    }
-    updateView();
-}
-
-function navigateNext() {
-    switch(currentView) {
-        case 'week':
-            currentDate.setDate(currentDate.getDate() + 7);
-            break;
-        case 'month':
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            break;
-        case 'year':
-            currentDate.setFullYear(currentDate.getFullYear() + 1);
-            break;
-    }
-    updateView();
-}
-
-function navigateToday() {
-    currentDate = new Date();
-    updateView();
-}
-
-// 辅助函数
-function getWeekStart(date) {
-    const result = new Date(date);
-    result.setDate(result.getDate() - result.getDay());
-    return result;
-}
-
-function formatDate(date) {
-    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-}
-
-function isCurrentDate(date) {
-    const today = new Date();
-    return date.getDate() === today.getDate() &&
-           date.getMonth() === today.getMonth() &&
-           date.getFullYear() === today.getFullYear();
-}
-
-// 功能按钮函数
-function exportData() {
-    const data = {
-        goals: getGoals(),
-        exportDate: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `goals-data-${formatDate(new Date())}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-function clearOldData() {
-    if (confirm('确定要清除所有旧数据吗？此操作不可恢复！')) {
-        localStorage.removeItem('goals');
-        showGoalsList();
-        displayGoals();
-    }
-}
-
-function modifyPin() {
-    const currentPin = localStorage.getItem('pin');
-    
-    if (!currentPin) {
-        const newPin = prompt('请设置新的PIN码：');
-        if (newPin) {
-            localStorage.setItem('pin', newPin);
-            alert('PIN码设置成功！');
-        }
-    } else {
-        const inputPin = prompt('请输入当前PIN码：');
-        if (inputPin === currentPin) {
-            const newPin = prompt('请设置新的PIN码：');
-            if (newPin) {
-                localStorage.setItem('pin', newPin);
-                alert('PIN码修改成功！');
+        // 获取当前目标
+        getGoals().then(goals => {
+            const goal = goals.find(g => g.id === currentGoalId);
+            if (!goal) {
+                console.error('找不到当前目标');
+                return;
             }
-        } else {
-            alert('PIN码错误！');
+
+            // 确保 completionData 存在
+            goal.completionData = goal.completionData || {};
+            
+            // 创建表格行
+            dates.forEach(date => {
+                const dateString = date.toISOString().split('T')[0];
+                const weekDay = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()];
+                const tr = document.createElement('tr');
+                
+                // 日期单元格
+                const dateCell = document.createElement('td');
+                dateCell.textContent = dateString;
+                tr.appendChild(dateCell);
+                
+                // 星期单元格
+                const weekDayCell = document.createElement('td');
+                weekDayCell.textContent = `星期${weekDay}`;
+                tr.appendChild(weekDayCell);
+                
+                // 完成状态单元格
+                const statusCell = document.createElement('td');
+                const isCompleted = goal.completionData[dateString] || false;
+                
+                const button = document.createElement('button');
+                button.className = isCompleted ? 'completed' : 'not-completed';
+                button.textContent = isCompleted ? '✓' : '✗';
+                button.onclick = () => toggleCompletion(dateString);
+                
+                statusCell.appendChild(button);
+                tr.appendChild(statusCell);
+                
+                weekViewData.appendChild(tr);
+            });
+        }).catch(error => {
+            console.error('获取目标数据时出错:', error);
+            showError('获取目标数据失败，请稍后重试');
+        });
+    } catch (error) {
+        console.error('更新周视图时出错:', error);
+        showError('更新周视图失败，请稍后重试');
+    }
+}
+
+// 更新月视图
+function updateMonthView() {
+    try {
+        const monthViewData = document.getElementById('monthViewData');
+        if (!monthViewData) {
+            console.error('找不到月视图数据容器');
+            return;
         }
-    }
-}
 
-function editGoal(id) {
-    const goalElement = document.getElementById(`goal-${id}`);
-    const goal = getGoals().find(g => g.id === id);
-    
-    if (!goal || !goalElement) return;
-    
-    // 阻止点击事件冒泡，避免触发 viewGoalDetail
-    const originalContent = goalElement.innerHTML;
-    
-    goalElement.innerHTML = `
-        <div class="goal-edit-form">
-            <input type="text" class="goal-edit-input" value="${goal.content}">
-            <div class="goal-actions">
-                <button onclick="saveGoalEdit(${id})" class="edit-btn">保存</button>
-                <button onclick="cancelGoalEdit(${id}, '${encodeURIComponent(originalContent)}')" class="delete-btn">取消</button>
-            </div>
-        </div>
-    `;
-    
-    // 自动聚焦输入框
-    const input = goalElement.querySelector('.goal-edit-input');
-    input.focus();
-    input.select();
-    
-    // 添加回车保存功能
-    input.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') {
-            saveGoalEdit(id);
-        } else if (e.key === 'Escape') {
-            cancelGoalEdit(id, encodeURIComponent(originalContent));
+        monthViewData.innerHTML = '';
+        
+        // 生成最近30天的数据
+        const dates = [];
+        const today = new Date();
+        for (let i = 0; i < 30; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            dates.push(date);
         }
-    });
+
+        // 获取当前目标
+        getGoals().then(goals => {
+            const goal = goals.find(g => g.id === currentGoalId);
+            if (!goal) {
+                console.error('找不到当前目标');
+                return;
+            }
+
+            // 确保 completionData 存在
+            goal.completionData = goal.completionData || {};
+            
+            // 创建表格行
+            dates.forEach(date => {
+                const dateString = date.toISOString().split('T')[0];
+                const weekDay = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()];
+                const tr = document.createElement('tr');
+                
+                // 日期单元格
+                const dateCell = document.createElement('td');
+                dateCell.textContent = dateString;
+                tr.appendChild(dateCell);
+                
+                // 星期单元格
+                const weekDayCell = document.createElement('td');
+                weekDayCell.textContent = `星期${weekDay}`;
+                tr.appendChild(weekDayCell);
+                
+                // 完成状态单元格
+                const statusCell = document.createElement('td');
+                const isCompleted = goal.completionData[dateString] || false;
+                
+                const button = document.createElement('button');
+                button.className = isCompleted ? 'completed' : 'not-completed';
+                button.textContent = isCompleted ? '✓' : '✗';
+                button.onclick = () => toggleCompletion(dateString);
+                
+                statusCell.appendChild(button);
+                tr.appendChild(statusCell);
+                
+                monthViewData.appendChild(tr);
+            });
+        }).catch(error => {
+            console.error('获取目标数据时出错:', error);
+            showError('获取目标数据失败，请稍后重试');
+        });
+    } catch (error) {
+        console.error('更新月视图时出错:', error);
+        showError('更新月视图失败，请稍后重试');
+    }
 }
 
-function saveGoalEdit(id) {
-    const goalElement = document.getElementById(`goal-${id}`);
-    const input = goalElement.querySelector('.goal-edit-input');
-    const newContent = input.value.trim();
-    
-    if (!newContent) {
-        alert('目标内容不能为空！');
-        return;
-    }
-    
-    const goals = getGoals();
-    const goalIndex = goals.findIndex(g => g.id === id);
-    
-    if (goalIndex !== -1) {
-        goals[goalIndex].content = newContent;
-        saveGoals(goals);
-        displayGoals();
+// 更新年视图
+function updateYearView() {
+    try {
+        const yearViewData = document.getElementById('yearViewData');
+        if (!yearViewData) {
+            console.error('找不到年视图数据容器');
+            return;
+        }
+
+        yearViewData.innerHTML = '';
+        
+        // 获取当前目标
+        getGoals().then(goals => {
+            const goal = goals.find(g => g.id === currentGoalId);
+            if (!goal) {
+                console.error('找不到当前目标');
+                return;
+            }
+
+            // 确保 completionData 存在
+            goal.completionData = goal.completionData || {};
+            
+            // 生成12个月的卡片
+            const months = [];
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            
+            for (let month = 0; month < 12; month++) {
+                const monthCard = document.createElement('div');
+                monthCard.className = 'month-card';
+                
+                // 月份标题
+                const monthTitle = document.createElement('h4');
+                monthTitle.textContent = `${month + 1}月`;
+                monthCard.appendChild(monthTitle);
+                
+                // 天数网格
+                const monthDays = document.createElement('div');
+                monthDays.className = 'month-days';
+                
+                // 获取该月的第一天
+                const firstDay = new Date(currentYear, month, 1);
+                const lastDay = new Date(currentYear, month + 1, 0);
+                
+                // 添加空白单元格直到第一天
+                for (let i = 0; i < firstDay.getDay(); i++) {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'day-cell empty';
+                    monthDays.appendChild(emptyCell);
+                }
+                
+                // 添加天数单元格
+                for (let day = 1; day <= lastDay.getDate(); day++) {
+                    const date = new Date(currentYear, month, day);
+                    const dateString = date.toISOString().split('T')[0];
+                    
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'day-cell';
+                    dayCell.textContent = day;
+                    
+                    // 如果日期在今天之后，添加empty类
+                    if (date > today) {
+                        dayCell.className += ' empty';
+                    } else {
+                        const isCompleted = goal.completionData[dateString] || false;
+                        dayCell.className += isCompleted ? ' completed' : ' not-completed';
+                        dayCell.onclick = () => toggleCompletion(dateString);
+                    }
+                    
+                    monthDays.appendChild(dayCell);
+                }
+                
+                monthCard.appendChild(monthDays);
+                yearViewData.appendChild(monthCard);
+            }
+        }).catch(error => {
+            console.error('获取目标数据时出错:', error);
+            showError('获取目标数据失败，请稍后重试');
+        });
+    } catch (error) {
+        console.error('更新年视图时出错:', error);
+        showError('更新年视图失败，请稍后重试');
     }
 }
 
-function cancelGoalEdit(id, originalContent) {
-    const goalElement = document.getElementById(`goal-${id}`);
-    goalElement.innerHTML = decodeURIComponent(originalContent);
+// 将函数暴露到全局作用域
+window.addGoal = addGoal;
+window.editGoal = editGoal;
+window.toggleCompletion = toggleCompletion;
+window.showGoalsList = showGoalsList;
+window.switchView = switchView;
+window.showGoalDetail = showGoalDetail;
+window.deleteGoalHandler = deleteGoalHandler;
+
+// 添加目标处理函数
+async function addGoalHandler() {
+    try {
+        const form = document.getElementById('goalForm');
+        const input = document.getElementById('goalInput');
+
+        if (!form || !input) {
+            console.error('找不到表单元素');
+            return;
+        }
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const content = input.value.trim();
+            
+            if (content) {
+                const goalId = await addGoal(content);
+                if (goalId) {
+                    input.value = '';
+                    const goals = await getGoals();
+                    updateGoalsList(goals);
+                }
+            }
+        };
+    } catch (error) {
+        console.error('设置添加目标处理函数时出错:', error);
+        showError('设置添加目标功能失败，请刷新页面重试');
+    }
 }
+
+// 删除目标处理函数
+async function deleteGoalHandler(id) {
+    try {
+        if (confirm('确定要删除这个目标吗？')) {
+            if (await deleteGoal(id)) {
+                const goals = await getGoals();
+                updateGoalsList(goals);
+            }
+        }
+    } catch (error) {
+        console.error('删除目标时出错:', error);
+        showError('删除目标失败，请稍后重试');
+    }
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        console.log('正在初始化应用...');
+
+        // 初始化 Firebase
+        // initializeApp(firebaseConfig);
+        // db = getFirestore();
+        console.log('Firebase 初始化完成');
+
+        // 初始化视图状态
+        const goalDetailElement = document.getElementById('goalDetail');
+        const goalsListElement = document.getElementById('goalsList');
+        
+        if (!goalDetailElement || !goalsListElement) {
+            throw new Error('找不到必要的DOM元素');
+        }
+
+        // 显示目标列表
+        goalDetailElement.style.display = 'none';
+        goalsListElement.style.display = 'block';
+
+        // 获取并显示目标列表
+        const goals = await getGoals();
+        updateGoalsList(goals);
+
+        // 初始化添加目标处理
+        addGoalHandler();
+
+        // 添加视图切换按钮的事件监听器
+        document.getElementById('weekViewBtn').addEventListener('click', () => switchView('week'));
+        document.getElementById('monthViewBtn').addEventListener('click', () => switchView('month'));
+        document.getElementById('yearViewBtn').addEventListener('click', () => switchView('year'));
+
+        console.log('应用初始化完成');
+    } catch (error) {
+        console.error('初始化应用时出错:', error);
+        showError('初始化应用失败，请刷新页面重试');
+    }
+});

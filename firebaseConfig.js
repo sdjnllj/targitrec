@@ -1,12 +1,18 @@
 // Firebase 配置
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyAPzskLscM99aZRvuvw2WJTV2j2TgAU",
+    authDomain: "targitrec.firebaseapp.com",
+    projectId: "targitrec",
+    storageBucket: "targitrec.appspot.com",
+    messagingSenderId: "376230798821",
+    appId: "1:376230798821:web:dfa3394ad2a54bf5a646ac"
 };
 
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
 // 初始化 Firebase
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+export { db };
