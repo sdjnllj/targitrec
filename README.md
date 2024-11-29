@@ -20,7 +20,7 @@
 
 1. 克隆仓库：
 ```bash
-git clone https://
+git clone https://github.com/sdjnllj/targitrec.git
 ```
 
 ## 贡献

@@ -172,10 +172,13 @@ class App {
             const goal = await query.get(goalId);
             
             this.currentGoalId = goalId;
-            document.getElementById('detailTitle').textContent = goal.get('text');
+            this.currentGoalText = goal.get('text') || goal.get('content');
+            
+            // 只更新 goal-name 类的元素
+            document.querySelector('.goal-name').textContent = this.currentGoalText;
             
             this.showPage('detail');
-            this.switchView('week'); // 默认显示周视图
+            this.switchView('week');
             await this.loadCompletionData();
         } catch (error) {
             this.showToast('加载详情失败', 'error');
@@ -203,7 +206,7 @@ class App {
                 ));
             }
             
-            // 最后删除目标
+            // 后删除目标
             await goal.destroy({ useMasterKey: true });
             
             this.showToast('目标已删除');
@@ -423,7 +426,9 @@ class App {
     // 更新年视图
     updateYearView(completions) {
         const year = this.currentDate.getFullYear();
-        document.getElementById('yearRange').textContent = `${year}年`;
+        
+        document.getElementById('yearRange').textContent = 
+            `${year}年`;
 
         const yearContent = document.getElementById('yearContent');
         const monthsData = Array.from({ length: 12 }, (_, month) => {

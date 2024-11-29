@@ -80,6 +80,15 @@ body {
 
 .btn.back {
     background: var(--light-text);
+    padding: 6px 12px;
+    font-size: 0.9em;
+    margin-right: 16px;
+    min-width: 60px;
+    opacity: 0.8;
+}
+
+.btn.back:hover {
+    opacity: 1;
 }
 
 .btn.delete {
@@ -88,6 +97,8 @@ body {
 
 .btn.view-btn {
     background: var(--secondary-color);
+    padding: 6px 16px;
+    min-width: 80px;
 }
 
 .btn.view-btn.active {
@@ -141,14 +152,14 @@ body {
     display: flex;
     justify-content: center;
     gap: 12px;
-    margin-bottom: 24px;
+    margin: 16px 0;
 }
 
 .date-nav {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    gap: 16px;
+    padding: 10px 20px;
     margin-bottom: 20px;
 }
 
@@ -309,4 +320,80 @@ body {
     .view-controls {
         flex-direction: column;
     }
+}
+
+/* 视图标题样式 */
+.view-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.goal-name {
+    color: var(--primary-color);
+    font-size: 1.2em;
+    margin: 0;
+    font-weight: bold;
+}
+
+#weekRange, #monthRange, #yearRange {
+    color: var(--text-color);
+    font-size: 1.1em;
+}
+
+/* 视图标题容器样式 */
+.view-title-container {
+    text-align: center;
+    margin: 10px 0 20px 0;
+    padding: 10px;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.view-title-container .goal-name {
+    font-size: 1.5em;
+    color: var(--primary-color);
+    margin: 0;
+    padding: 10px 0;
+}
+
+/* 调整日期导航样式 */
+.date-nav {
+    margin-top: 20px;
+}
+
+/* 修改首页头部样式 */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #eee;
+}
+
+/* 修改返回按钮样式 */
+.btn.back {
+    background: var(--light-text);
+    padding: 6px 12px;
+    font-size: 0.9em;
+    margin-right: 16px;
+    min-width: 60px;
+    opacity: 0.8;
+}
+
+.btn.back:hover {
+    opacity: 1;
+}
+
+/* 修改新建目标按钮样式 */
+#newGoalBtn {
+    margin-left: auto;
+}
+
+/* 调整详情页面头部样式 */
+#detailPage .header {
+    justify-content: flex-start;
+    padding: 10px 0;
+    margin-bottom: 16px;
 }
